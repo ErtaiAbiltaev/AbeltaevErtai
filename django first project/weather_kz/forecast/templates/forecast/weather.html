@@ -3,9 +3,106 @@
 <head>
     <meta charset="UTF-8" />
     <title>Погода в Казахстане</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            background: #e0f7fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #00796b;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 250px;
+            border: 1px solid #00796b;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background: #00796b;
+            color: white;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #004d40;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .weather-current {
+            text-align: center;
+            background: #b2dfdb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .weather-current img {
+            vertical-align: middle;
+        }
+        .weather-forecast {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .forecast-day {
+            background: #80cbc4;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            width: 30%;
+            box-sizing: border-box;
+            color: #004d40;
+        }
+        .forecast-day img {
+            width: 60px;
+            height: 60px;
+        }
+        .date {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .hourly-forecast {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+        }
+        .hour-block {
+            display: inline-block;
+            background: #4db6ac;
+            border-radius: 8px;
+            padding: 10px;
+            margin-right: 10px;
+            width: 80px;
+            color: white;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .hour-block img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Узнать погоду в Казахстане</h1>
+    <h1>Погода в Казахстане</h1>
     <form method="post">
         {% csrf_token %}
         <input type="text" name="city" placeholder="Введите город" required />
@@ -13,16 +110,43 @@
     </form>
 
     {% if error %}
-        <p style="color: red;">{{ error }}</p>
+        <p class="error">{{ error }}</p>
     {% endif %}
 
     {% if weather %}
-        <h2>Погода в {{ weather.city }}</h2>
-        <p>Температура: {{ weather.temp }} °C</p>
-        <p>Ощущается как: {{ weather.feels_like }} °C</p>
-        <p>Описание: {{ weather.description }}</p>
-        <p>Влажность: {{ weather.humidity }}%</p>
-        <p>Скорость ветра: {{ weather.wind }} км/ч</p>
+        <div class="weather-current">
+            <h2>{{ weather.city }}, {{ weather.date }}</h2>
+            <img src="{{ weather.forecast.0.icon_url }}" alt="Иконка погоды" />
+            <p><strong>Температура:</strong> {{ weather.temp }} °C (Ощущается как {{ weather.feels_like }} °C)</p>
+            <p><strong>Описание:</strong> {{ weather.description }}</p>
+            <p><strong>Влажность:</strong> {{ weather.humidity }}%</p>
+            <p><strong>Ветер:</strong> {{ weather.wind }} км/ч</p>
+        </div>
+
+        <h3>Почасовой прогноз на сегодня</h3>
+        <div class="hourly-forecast">
+            {% for hour in weather.hourly %}
+                <div class="hour-block">
+                    <div>{{ hour.time }}</div>
+                    <img src="{{ hour.icon_url }}" alt="Иконка" />
+                    <div>{{ hour.temp }} °C</div>
+                    <div style="font-size: 12px;">{{ hour.description }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h3>Прогноз на ближайшие дни</h3>
+        <div class="weather-forecast">
+            {% for day in weather.forecast %}
+                <div class="forecast-day">
+                    <div class="date">{{ day.date }}</div>
+                    <img src="{{ day.icon_url }}" alt="Погода" />
+                    <div><strong>Макс:</strong> {{ day.maxtemp }} °C</div>
+                    <div><strong>Мин:</strong> {{ day.mintemp }} °C</div>
+                    <div>{{ day.description }}</div>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 </body>
 </html>
